@@ -5,7 +5,6 @@ with open('token.txt','r') as t:
     token = t.read().replace('\n','')
 
 updater = Updater(token=token)
-dispatcher = updater.dispatcher
 
 logging.basicConfig(format='%(asctime)s - %(name)s %(levelname)s - %(message)s', level=logging.INFO)
 
