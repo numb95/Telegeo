@@ -13,7 +13,6 @@ type_message=" در ضمن نوع مشکلت رو هم مشخص کن"
 get_loc_message = "با سپاس از شما، اطلاعات شما دریافت شد"
 
 def start(bot, update):
-    #print(update)
     bot.send_message(text=welcome_message, chat_id=update.message.chat_id)
 
 
@@ -29,18 +28,13 @@ def times(bot, update):
 
 def button(bot, update):
     query = update.callback_query
-    bot.edit_message_text(text="%s گزینهٔ انتخابی شما" % query.data,
+    bot.edit_message_text(text="%s گزینهٔ انتخابی شما"  % query.data,
         chat_id=query.message.chat_id,
-        message_id=query.message.message_id)
-    
+        message_id=query.message.message_id)  
     query = update.callback_query
     bot.send_message(text="حالا موقعیت مکانی‌ت رو هم برام بفرست",
         chat_id=query.message.chat_id)
-
-
-
 def get_loc(bot, update):
-    print (button(bot, update))
     sender_data = update.message.from_user
     user_id = sender_data['id']
     latitude = update.message.location.latitude
@@ -48,6 +42,7 @@ def get_loc(bot, update):
     admin_id = 0
     date = update.message.date
     serv = 0
+    geo = 0
     try:
         username = sender_data['username']
     except:
@@ -56,22 +51,22 @@ def get_loc(bot, update):
         user_name = 'undefiend'
     else:
         user_name = sender_data['first_name'] + ' ' + sender_data['last_name']
-    store_db(user_id, user_name, username, latitude, longitude, admin_id, date, serv)
+    store_db(user_id, user_name, username, latitude, longitude, geo,admin_id, date, serv)
     bot.send_message(chat_id=update.message.chat_id, text=get_loc_message)
 
 def make_table_db():
-    connection = sqlite3.connect('database.db')
+    connection = sqlite3.connect('database.sqlite3')
     cursor = connection.cursor()
     cursor.execute('''CREATE TABLE datas
-                    (id INTEGER, name TEXT DEFAULT 'undefined', username TEXT DEFAULT 'undefiend', lat REAL, long REAL, is_admin INTEGER DEFAULT 0, date TEXT, serv TEXT DEFAULT 0)
+                    (id INTEGER, name TEXT DEFAULT 'undefined', username TEXT DEFAULT 'undefiend', lat REAL, long REAL, geo REAL DEFAULT 0, is_admin INTEGER DEFAULT 0, date TEXT, serv TEXT DEFAULT 0)
                     ''')
     connection.commit()
     connection.close()
 
-def store_db(user_id, user_name, username, latitude, longitude, admin_id, date, serv):
-    connection = sqlite3.connect('database.db')
+def store_db(user_id, user_name, username, latitude, longitude, geo, admin_id, date, serv):
+    connection = sqlite3.connect('database.sqlite3')
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO datas VALUES (?,?,?,?,?,?,?,?)",(user_id, user_name, username, latitude, longitude, admin_id, date, serv))
+    cursor.execute("INSERT INTO datas VALUES (?,?,?,?,?,?,?,?,?)",(user_id, user_name, username, latitude, longitude, geo, admin_id, date, serv))
     connection.commit()
     connection.close()
 
@@ -80,7 +75,7 @@ def store_db(user_id, user_name, username, latitude, longitude, admin_id, date, 
 def get_db(bot, update):
     workbook = Workbook('database.xlsx')
     worksheet = workbook.add_worksheet()
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect('database.sqlite3')
     c = conn.cursor()
     c.execute("select * from datas")
     mysel = c.execute("select * from datas")
@@ -89,11 +84,11 @@ def get_db(bot, update):
             worksheet.write(i, j, value)
     workbook.close()
     bot.send_document(chat_id=update.message.chat_id, document=open('database.xlsx', 'rb'))
-    bot.send_document(chat_id=update.message.chat_id, document=open('database.db', 'rb'))
+    bot.send_document(chat_id=update.message.chat_id, document=open('database.sqlite3', 'rb'))
 
 
 def main():
-    if Path("./database.db").is_file():
+    if Path("./database.sqlite3").is_file():
         pass
     else:
         make_table_db()
