@@ -5,3 +5,5 @@ database.xlsx
 *.xlsx
 .idea
 *.swp
+database.sqlite3
+datas.*
