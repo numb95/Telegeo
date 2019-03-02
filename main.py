@@ -1,8 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
-import logging
-import os
-import sqlite3
+import sqlite3, csv, os, logging
 from pathlib import Path
 from xlsxwriter.workbook import Workbook
 
@@ -89,8 +87,20 @@ def get_db(bot, update):
         for j, value in enumerate(row):
             worksheet.write(i, j, value)
     workbook.close()
+    inpsql3 = sqlite3.connect('database.sqlite3')
+    sql3_cursor = inpsql3.cursor()
+    sql3_cursor.execute('SELECT * FROM datas')
+    with open('database.csv','w') as out_csv_file:
+        csv_out = csv.writer(out_csv_file)
+    # write header                        
+        csv_out.writerow([d[0] for d in sql3_cursor.description])
+    # write data                          
+        for result in sql3_cursor:
+            csv_out.writerow(result)
+    inpsql3.close() 
     bot.send_document(chat_id=update.message.chat_id, document=open('database.xlsx', 'rb'))
     bot.send_document(chat_id=update.message.chat_id, document=open('database.sqlite3', 'rb'))
+    bot.send_document(chat_id=update.message.chat_id, document=open('database.csv', 'rb'))
 
 
 def main():

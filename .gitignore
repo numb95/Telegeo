@@ -18,3 +18,5 @@ venv
 .vscode
 .dist
 .python-version
+database.csv
+datas.csv
