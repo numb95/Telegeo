@@ -96,7 +96,7 @@ def get_db(bot, update):
         csv_out.writerow([d[0] for d in sql3_cursor.description])
     # write data                          
         for result in sql3_cursor:
-        csv_out.writerow(result)
+            csv_out.writerow(result)
     inpsql3.close() 
     bot.send_document(chat_id=update.message.chat_id, document=open('database.xlsx', 'rb'))
     bot.send_document(chat_id=update.message.chat_id, document=open('database.sqlite3', 'rb'))
