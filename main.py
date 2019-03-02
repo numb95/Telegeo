@@ -104,11 +104,12 @@ def get_db(bot, update):
         bot.send_document(chat_id=update.message.chat_id, document=open('database.csv', 'rb'))
     else:
         bot.send_message(chat="داده‌ای موجود نیست", chat_id=update.message.chat_id)
-        
+
 def rm(bot, update):
-    os.remove("database.csv")
-    os.remove("database.sqlite3")
-    os.remove("database.xlsx")
+    while True:
+        os.remove("database.csv")
+        os.remove("database.sqlite3")
+        os.remove("database.xlsx")
 
 def main():
     if Path("./database.sqlite3").is_file():
