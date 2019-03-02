@@ -90,7 +90,7 @@ def get_db(bot, update):
     inpsql3 = sqlite3.connect('database.sqlite3')
     sql3_cursor = inpsql3.cursor()
     sql3_cursor.execute('SELECT * FROM datas')
-    with open('outdatabase.csv','w') as out_csv_file:
+    with open('database.csv','w') as out_csv_file:
         csv_out = csv.writer(out_csv_file)
     # write header                        
         csv_out.writerow([d[0] for d in sql3_cursor.description])
