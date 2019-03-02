@@ -77,33 +77,34 @@ def store_db(user_id, user_name, username, latitude, longitude,typo, date):
 
 
 def get_db(bot, update):
-    workbook = Workbook('database.xlsx')
-    worksheet = workbook.add_worksheet()
-    conn = sqlite3.connect('database.sqlite3')
-    c = conn.cursor()
-    c.execute("select * from datas")
-    mysel = c.execute("select * from datas")
-    for i, row in enumerate(mysel):
-        for j, value in enumerate(row):
-            worksheet.write(i, j, value)
-    workbook.close()
-    inpsql3 = sqlite3.connect('database.sqlite3')
-    sql3_cursor = inpsql3.cursor()
-    sql3_cursor.execute('SELECT * FROM datas')
-    with open('outdatabase.csv','w') as out_csv_file:
-        csv_out = csv.writer(out_csv_file)
-    # write header                        
-        csv_out.writerow([d[0] for d in sql3_cursor.description])
-    # write data                          
-        for result in sql3_cursor:
-            csv_out.writerow(result)
-    inpsql3.close() 
-    if  os.path.isfile('database.xlsx') or os.path.isfile('database.sqlite3') or os.path.isfile('database.csv'): 
+    if  os.path.isfile('database.xlsx') or os.path.isfile('database.sqlite3') or os.path.isfile('database.csv'):
+        workbook = Workbook('database.xlsx')
+        worksheet = workbook.add_worksheet()
+        conn = sqlite3.connect('database.sqlite3')
+        c = conn.cursor()
+        c.execute("select * from datas")
+        mysel = c.execute("select * from datas")
+        for i, row in enumerate(mysel):
+            for j, value in enumerate(row):
+                worksheet.write(i, j, value)
+        workbook.close()
+        inpsql3 = sqlite3.connect('database.sqlite3')
+        sql3_cursor = inpsql3.cursor()
+        sql3_cursor.execute('SELECT * FROM datas')
+        with open('outdatabase.csv','w') as out_csv_file:
+            csv_out = csv.writer(out_csv_file)
+        # write header                        
+            csv_out.writerow([d[0] for d in sql3_cursor.description])
+        # write data                          
+            for result in sql3_cursor:
+                csv_out.writerow(result)
+        inpsql3.close() 
         bot.send_document(chat_id=update.message.chat_id, document=open('database.xlsx', 'rb'))
         bot.send_document(chat_id=update.message.chat_id, document=open('database.sqlite3', 'rb'))
         bot.send_document(chat_id=update.message.chat_id, document=open('database.csv', 'rb'))
     else:
         bot.send_message(chat="داده‌ای موجود نیست", chat_id=update.message.chat_id)
+        
 def rm(bot, update):
     os.remove("database.csv")
     os.remove("database.sqlite3")
