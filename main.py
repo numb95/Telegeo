@@ -106,6 +106,7 @@ def rm(bot, update):
     os.remove("database.csv")
     os.remove("database.sqlite3")
     os.remove("database.xlsx")
+    bot.send_document(chat_id=update.message.chat_id, text="All deleted.")
 
 def main():
     if Path("./database.sqlite3").is_file():
