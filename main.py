@@ -11,23 +11,24 @@ welcome_message = "سلام. برای اینکه بفهمیم این اتفاق 
 location_message = "حالا برای اینکه بدونیم چه اتفاقی افتاده لوکیشنت رو برامون به کمک دکمه زیر بفرست"
 type_message=" در ضمن نوع مشکلت رو هم مشخص کن"
 get_loc_message = "با سپاس از شما، اطلاعات شما دریافت شد"
-
+db_info = []
 def start(bot, update):
     bot.send_message(text=welcome_message, chat_id=update.message.chat_id)
+    db_info.append( update.message.from_user['id'])
 
 
 def times(bot, update):
     type_keyboard = [[InlineKeyboardButton("تصادف", callback_data='تصادف'),
                      InlineKeyboardButton("مشکل جاده", callback_data='مشکل جاده'),
-                      InlineKeyboardButton("ترافیک", callback_data='ترفیک'),
+                      InlineKeyboardButton("ترافیک", callback_data='ترافیک'),
                       InlineKeyboardButton("پلیس", callback_data='پلیس')
                       ]]
     type_reply_markup = InlineKeyboardMarkup(type_keyboard)
     update.message.reply_text(type_message, reply_markup=type_reply_markup)
-
-
+    db_info.append(update.message.text)
 def button(bot, update):
     query = update.callback_query
+    db_info.append(query.data)
     bot.edit_message_text(text="%s گزینهٔ انتخابی شما"  % query.data,
         chat_id=query.message.chat_id,
         message_id=query.message.message_id)  
@@ -35,38 +36,43 @@ def button(bot, update):
     bot.send_message(text="حالا موقعیت مکانی‌ت رو هم برام بفرست",
         chat_id=query.message.chat_id)
 def get_loc(bot, update):
+    global db_info
     sender_data = update.message.from_user
     user_id = sender_data['id']
     latitude = update.message.location.latitude
     longitude = update.message.location.longitude
-    admin_id = 0
-    date = update.message.date
-    serv = 0
-    geo = 0
+    db_info.append(latitude)
+    db_info.append(longitude)
     try:
         username = sender_data['username']
     except:
         username = sender_data['id']
+    db_info.append(username)
     if sender_data['first_name'] or sender_data['last_name'] is None:
-        user_name = 'undefiend'
+        db_info.append("Unknown name")
     else:
         user_name = sender_data['first_name'] + ' ' + sender_data['last_name']
-    store_db(user_id, user_name, username, latitude, longitude, geo,admin_id, date, serv)
+        db_info.append(user_name)
+    print(db_info)
+#    [28357375, 'db_info.append(user_name)', 'ترفیک', 34.854012, 52.607471, 'Amirhossein_Goodarzi', 'Unknown name'
+    store_db(db_info[0], db_info[6], db_info[5], db_info[3], db_info[4], db_info[2],db_info[1])
     bot.send_message(chat_id=update.message.chat_id, text=get_loc_message)
+    db_info = []
+#    [28357375, 28357375, '1397/12/07', 'مشکل جاده', 34.854012, 52.607471]
 
 def make_table_db():
     connection = sqlite3.connect('database.sqlite3')
     cursor = connection.cursor()
     cursor.execute('''CREATE TABLE datas
-                    (id INTEGER, name TEXT DEFAULT 'undefined', username TEXT DEFAULT 'undefiend', lat REAL, long REAL, geo REAL DEFAULT 0, is_admin INTEGER DEFAULT 0, date TEXT, serv TEXT DEFAULT 0)
+                    (id INTEGER, name TEXT DEFAULT 'undefined', username TEXT DEFAULT 'undefiend', lat REAL, long REAL, typo TEXT, date TEXT)
                     ''')
     connection.commit()
     connection.close()
 
-def store_db(user_id, user_name, username, latitude, longitude, geo, admin_id, date, serv):
+def store_db(user_id, user_name, username, latitude, longitude,typo, date):
     connection = sqlite3.connect('database.sqlite3')
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO datas VALUES (?,?,?,?,?,?,?,?,?)",(user_id, user_name, username, latitude, longitude, geo, admin_id, date, serv))
+    cursor.execute("INSERT INTO datas VALUES (?,?,?,?,?,?,?)",(user_id, user_name, username, latitude, longitude,typo, date))
     connection.commit()
     connection.close()
 

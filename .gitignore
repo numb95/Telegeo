@@ -7,3 +7,14 @@ database.xlsx
 *.swp
 database.sqlite3
 datas.*
+venv/*
+venv
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.vscode
+.dist
+.python-version
