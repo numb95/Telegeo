@@ -98,10 +98,12 @@ def get_db(bot, update):
         for result in sql3_cursor:
             csv_out.writerow(result)
     inpsql3.close() 
-    bot.send_document(chat_id=update.message.chat_id, document=open('database.xlsx', 'rb'))
-    bot.send_document(chat_id=update.message.chat_id, document=open('database.sqlite3', 'rb'))
-    bot.send_document(chat_id=update.message.chat_id, document=open('database.csv', 'rb'))
-
+    if  os.path.isfile('database.xlsx') or os.path.isfile('database.sqlite3') or os.path.isfile('database.csv'): 
+        bot.send_document(chat_id=update.message.chat_id, document=open('database.xlsx', 'rb'))
+        bot.send_document(chat_id=update.message.chat_id, document=open('database.sqlite3', 'rb'))
+        bot.send_document(chat_id=update.message.chat_id, document=open('database.csv', 'rb'))
+    else:
+        bot.send_message(chat="داده‌ای موجود نیست", chat_id=update.message.chat_id)
 def rm(bot, update):
     os.remove("database.csv")
     os.remove("database.sqlite3")
