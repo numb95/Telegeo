@@ -90,18 +90,22 @@ def get_db(bot, update):
     inpsql3 = sqlite3.connect('database.sqlite3')
     sql3_cursor = inpsql3.cursor()
     sql3_cursor.execute('SELECT * FROM datas')
-    with open('database.csv','w') as out_csv_file:
+    with open('outdatabase.csv','w') as out_csv_file:
         csv_out = csv.writer(out_csv_file)
     # write header                        
         csv_out.writerow([d[0] for d in sql3_cursor.description])
     # write data                          
         for result in sql3_cursor:
-            csv_out.writerow(result)
+        csv_out.writerow(result)
     inpsql3.close() 
     bot.send_document(chat_id=update.message.chat_id, document=open('database.xlsx', 'rb'))
     bot.send_document(chat_id=update.message.chat_id, document=open('database.sqlite3', 'rb'))
     bot.send_document(chat_id=update.message.chat_id, document=open('database.csv', 'rb'))
 
+def rm(bot, update):
+    os.remove("database.csv")
+    os.remove("database.sqlite3")
+    os.remove("database.xlsx")
 
 def main():
     if Path("./database.sqlite3").is_file():
@@ -117,10 +121,12 @@ def main():
     start_handler = CommandHandler('start', start)
     times_handler = MessageHandler(Filters.text, times)
     getdb_handler = CommandHandler('get_db', get_db)
+    rm_handler = CommandHandler('rm', rm)
 
     updater.dispatcher.add_handler(start_handler)
     updater.dispatcher.add_handler(times_handler)
     updater.dispatcher.add_handler(getdb_handler)
+    updater.dispatcher.add_handler(rm_handler)
 
     print(time_date)
     updater.dispatcher.add_handler(CallbackQueryHandler(button))
