@@ -3,17 +3,27 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageH
 import sqlite3, csv, os, logging
 from pathlib import Path
 from xlsxwriter.workbook import Workbook
-
+import uuid
 time_date = ""
 welcome_message = "سلام. برای اینکه بفهمیم این اتفاق در چه روزی افتاده لازمه که بهمون تاریخ رو بگی. حتی اگه امروز این اتفاق افتاده باشه تاریخ امروز رو وارد کن. تاریخ رو هم به فرمت مثال زیر برامون بفرست: 1397/08/29"
 location_message = "حالا برای اینکه بدونیم چه اتفاقی افتاده لوکیشنت رو برامون به کمک دکمه زیر بفرست"
 type_message=" در ضمن نوع مشکلت رو هم مشخص کن"
 get_loc_message = "با سپاس از شما، اطلاعات شما دریافت شد"
-db_info = []
+error_message= "در حال حاضر صف ارسال داده پر است. لطفا ۲۰ ثانیه دیگر مجدداً ربات را بسته و دوباره اجرا کنید."
+db_info = [0,0,0,0,0,0,0]
+identity = 0
+
+def gpid():
+    return str(uuid.uuid4())
+
 def start(bot, update):
     bot.send_message(text=welcome_message, chat_id=update.message.chat_id)
-    db_info.append( update.message.from_user['id'])
-
+    db_info[0]=update.message.from_user['id']
+    global identity
+    identity = str(uuid.uuid4())
+    db_info[6] = identity
+    print (db_info)
+    print ("identitiy is ", identity)
 
 def times(bot, update):
     type_keyboard = [[InlineKeyboardButton("تصادف", callback_data='تصادف'),
@@ -23,13 +33,15 @@ def times(bot, update):
                       ]]
     type_reply_markup = InlineKeyboardMarkup(type_keyboard)
     update.message.reply_text(type_message, reply_markup=type_reply_markup)
-    db_info.append(update.message.text)
+    db_info[5]=update.message.text
+    print (db_info)
 def button(bot, update):
     query = update.callback_query
-    db_info.append(query.data)
+    db_info[4]=query.data
     bot.edit_message_text(text="%s گزینهٔ انتخابی شما"  % query.data,
         chat_id=query.message.chat_id,
         message_id=query.message.message_id)  
+    print ("identitiy is ", identity)
     query = update.callback_query
     bot.send_message(text="حالا موقعیت مکانی‌ت رو هم برام بفرست",
         chat_id=query.message.chat_id)
@@ -39,41 +51,46 @@ def get_loc(bot, update):
     user_id = sender_data['id']
     latitude = update.message.location.latitude
     longitude = update.message.location.longitude
-    db_info.append(latitude)
-    db_info.append(longitude)
+    db_info[2]=latitude
+    db_info[3]=longitude
+    print (db_info)
     try:
         username = sender_data['username']
     except:
         username = sender_data['id']
-    db_info.append(username)
-    if sender_data['first_name'] or sender_data['last_name'] is None:
-        db_info.append("Unknown name")
-    else:
-        user_name = sender_data['first_name'] + ' ' + sender_data['last_name']
-        db_info.append(user_name)
+    db_info[1]=username
+    # if sender_data['first_name'] or sender_data['last_name'] is None:
+    #     db_info.insert(1,"Unknown name")
+    # else:
+    #     user_name = sender_data['first_name'] + ' ' + sender_data['last_name']
+    #     db_info.insert(1,user_name)
+    print ("identitiy is ", identity)
     print(db_info)
 #    [28357375, 'db_info.append(user_name)', 'ترفیک', 34.854012, 52.607471, 'Amirhossein_Goodarzi', 'Unknown name'
-    store_db(db_info[0], db_info[6], db_info[5], db_info[3], db_info[4], db_info[2],db_info[1])
+    if db_info[6] == identity:
+        store_db(db_info[0], db_info[1], db_info[2], db_info[3], db_info[4], db_info[5],db_info[6])
+        print ("identitiy is ", identity)
+    else: 
+        bot.send_message(chat_id=update.message.chat_id, text=error_message)
     bot.send_message(chat_id=update.message.chat_id, text=get_loc_message)
-    db_info = []
 #    [28357375, 28357375, '1397/12/07', 'مشکل جاده', 34.854012, 52.607471]
 
 def make_table_db():
     connection = sqlite3.connect('database.sqlite3')
     cursor = connection.cursor()
     cursor.execute('''CREATE TABLE datas
-                    (id INTEGER, name TEXT DEFAULT 'undefined', username TEXT DEFAULT 'undefiend', lat REAL, long REAL, typo TEXT, date TEXT)
+                    (id INTEGER, username TEXT DEFAULT 'undefiend', lat REAL, long REAL, typo TEXT, date TEXT, identifier TEXT)
                     ''')
     connection.commit()
     connection.close()
 
-def store_db(user_id, user_name, username, latitude, longitude,typo, date):
+def store_db(user_id, username, latitude, longitude,typo, date, identifier):
     connection = sqlite3.connect('database.sqlite3')
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO datas VALUES (?,?,?,?,?,?,?)",(user_id, user_name, username, latitude, longitude,typo, date))
-    connection.commit()
+    with connection:
+        cursor.execute("INSERT INTO datas VALUES (?,?,?,?,?,?,?)",(user_id, username, latitude, longitude, typo, date, identifier))
+        connection.commit()
     connection.close()
-
 
 
 def get_db(bot, update):
